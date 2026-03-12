@@ -1,0 +1,565 @@
+{
+  "registry_type": "damage_curve_research_index",
+  "version": "1.0",
+  "last_updated": "2026-03-12",
+  "description": "Master index of all researched damage curves for InfraSure renewable energy risk model. Each entry maps a subsystem × hazard pair to its research file, recommended logistic parameters, and metadata.",
+  "functional_form": "DR(x) = L / (1 + exp(-k * (x - x0)))",
+  "priority_scope": "Score 4-5 pairs from hazard_asset_priority_ranking",
+
+  "hazard_groups": [
+    {
+      "hazard_code": "HAIL",
+      "research_file": "HAIL_x_SOLAR.md",
+      "asset_type": "solar",
+      "priority_score": 5,
+      "intensity_variable": "hail_diameter_mm",
+      "intensity_unit": "mm",
+      "intensity_source": "MESH radar (NOAA MRMS)",
+      "curves": [
+        {
+          "curve_id": "hail/pv_module_generic",
+          "subsystem": "PV_ARRAY",
+          "component": "PV_MODULE",
+          "specificity": "generic",
+          "description": "Standard 3.2mm tempered glass mono-Si module",
+          "L": 0.95, "k": 0.1064, "x0": 59.2,
+          "D10_mm": 39, "D50_mm": 60, "D90_mm": 86,
+          "confidence": "medium-high",
+          "derivation": "empirical + engineering-standard"
+        },
+        {
+          "curve_id": "hail/pv_module_thick_glass",
+          "subsystem": "PV_ARRAY",
+          "component": "PV_MODULE",
+          "specificity": "specs",
+          "match_criteria": {"glass_thickness_mm": {"min": 3.8, "max": 4.5}},
+          "description": "Thick glass (4.0mm) PV module",
+          "L": 0.95, "k": 0.1145, "x0": 72.5,
+          "D10_mm": 54, "D50_mm": 73, "D90_mm": 98,
+          "confidence": "medium",
+          "derivation": "engineering-standard + limited empirical"
+        },
+        {
+          "curve_id": "hail/pv_module_cdte_thin_film",
+          "subsystem": "PV_ARRAY",
+          "component": "PV_MODULE",
+          "specificity": "specs",
+          "match_criteria": {"cell_type": "thin_film"},
+          "description": "CdTe thin-film module (e.g., First Solar Series 6/7)",
+          "L": 0.90, "k": 0.1398, "x0": 73.5,
+          "D10_mm": 59, "D50_mm": 75, "D90_mm": ">100",
+          "confidence": "medium-low",
+          "derivation": "engineering-standard + expert-judgment"
+        },
+        {
+          "curve_id": "hail/pv_module_bifacial_2mm",
+          "subsystem": "PV_ARRAY",
+          "component": "PV_MODULE",
+          "specificity": "specs",
+          "match_criteria": {"bifacial": true, "glass_thickness_mm": {"max": 2.5}},
+          "description": "Bifacial glass-glass (2.0mm + 2.0mm) module",
+          "L": 0.95, "k": 0.1452, "x0": 38.4,
+          "D10_mm": 24, "D50_mm": 39, "D90_mm": 58,
+          "confidence": "medium-low",
+          "derivation": "engineering-standard + expert-judgment"
+        },
+        {
+          "curve_id": "hail/tracker_generic",
+          "subsystem": "MOUNTING",
+          "component": "TRACKER",
+          "specificity": "generic",
+          "description": "Single-axis tracker structural damage from hail",
+          "L": 0.40, "k": 0.100, "x0": 88,
+          "confidence": "low",
+          "derivation": "expert-judgment"
+        },
+        {
+          "curve_id": "hail/fixed_mount_generic",
+          "subsystem": "MOUNTING",
+          "component": "FIXED_MOUNT",
+          "specificity": "generic",
+          "description": "Fixed-mount racking structural damage from hail",
+          "L": 0.20, "k": 0.080, "x0": 100,
+          "confidence": "low",
+          "derivation": "expert-judgment"
+        }
+      ]
+    },
+    {
+      "hazard_code": "HURRICANE",
+      "research_file": "HURRICANE_x_WIND.md",
+      "asset_type": "wind",
+      "priority_score": 5,
+      "intensity_variable": "wind_speed_mph",
+      "intensity_unit": "mph",
+      "intensity_measure": "3-second peak gust",
+      "intensity_source": "STORM/IBTrACS synthetic track library + wind field model",
+      "curves": [
+        {
+          "curve_id": "hurricane/blade_generic",
+          "subsystem": "ROTOR_ASSEMBLY",
+          "component": "BLADE",
+          "specificity": "generic",
+          "description": "Wind turbine blade fragility under hurricane winds",
+          "L": 0.90, "k": 0.0669, "x0": 118,
+          "D10_mph": 85, "D50_mph": 118, "D90_mph": 151,
+          "confidence": "medium",
+          "derivation": "empirical (Rose et al. 2012) + engineering-standard"
+        },
+        {
+          "curve_id": "hurricane/rotor_assembly_generic",
+          "subsystem": "ROTOR_ASSEMBLY",
+          "component": "aggregate",
+          "specificity": "generic",
+          "description": "Rotor assembly aggregate (blade + hub + pitch system)",
+          "L": 0.88, "k": 0.0744, "x0": 116,
+          "confidence": "medium",
+          "derivation": "component-weighted aggregate"
+        },
+        {
+          "curve_id": "hurricane/tower_section_generic",
+          "subsystem": "TOWER",
+          "component": "TOWER_SECTION",
+          "specificity": "generic",
+          "description": "Steel tubular tower fragility — anchored to Rose et al. 2012",
+          "L": 1.00, "k": 0.1178, "x0": 136,
+          "confidence": "medium",
+          "derivation": "empirical (Rose et al. 2012 PNAS)"
+        },
+        {
+          "curve_id": "hurricane/nacelle_generic",
+          "subsystem": "NACELLE",
+          "component": "aggregate",
+          "specificity": "generic",
+          "description": "Nacelle and drivetrain — proxy-adapted from rotor + tower",
+          "L": 0.65, "k": 0.0541, "x0": 130,
+          "confidence": "low",
+          "derivation": "proxy-adapted"
+        },
+        {
+          "curve_id": "hurricane/foundation_generic",
+          "subsystem": "FOUNDATION",
+          "component": "FOUNDATION_BASE",
+          "specificity": "generic",
+          "description": "Turbine foundation — proxy-adapted, high resistance",
+          "L": 0.50, "k": 0.0722, "x0": 155,
+          "confidence": "low",
+          "derivation": "proxy-adapted + expert-judgment"
+        }
+      ]
+    },
+    {
+      "hazard_code": "WILDFIRE",
+      "research_file": "WILDFIRE_x_SOLAR.md",
+      "asset_type": "solar",
+      "priority_score": 5,
+      "intensity_variable": "fireline_intensity_kWm",
+      "intensity_unit": "kW/m",
+      "intensity_measure": "Byram fireline intensity",
+      "intensity_source": "FSim (USFS) conditional iMFI",
+      "notes": "Triple-channel loss: physical damage (modeled), smoke soiling (separate), PSPS (separate). Curves model Channel 1 only. Distance assumption d=10m.",
+      "curves": [
+        {
+          "curve_id": "wildfire/pv_array_generic",
+          "subsystem": "PV_ARRAY",
+          "component": "PV_MODULE",
+          "specificity": "generic",
+          "L": 0.95, "k": 0.00130, "x0": 2100,
+          "confidence": "low-medium",
+          "derivation": "engineering-standard (component thresholds)"
+        },
+        {
+          "curve_id": "wildfire/mounting_tracker_generic",
+          "subsystem": "MOUNTING",
+          "component": "TRACKER",
+          "specificity": "generic",
+          "L": 0.80, "k": 0.00060, "x0": 3600,
+          "confidence": "low",
+          "derivation": "engineering-standard (steel thermal limits)"
+        },
+        {
+          "curve_id": "wildfire/inverter_system_generic",
+          "subsystem": "INVERTER_SYSTEM",
+          "component": "INVERTER",
+          "specificity": "generic",
+          "description": "Most vulnerable subsystem — electronics fail first",
+          "L": 0.95, "k": 0.00210, "x0": 1300,
+          "confidence": "low-medium",
+          "derivation": "engineering-standard (electronics thermal limits)"
+        },
+        {
+          "curve_id": "wildfire/substation_generic",
+          "subsystem": "SUBSTATION",
+          "component": "TRANSFORMER_MAIN",
+          "specificity": "generic",
+          "L": 0.95, "k": 0.00140, "x0": 1900,
+          "confidence": "low",
+          "derivation": "engineering-standard + expert-judgment"
+        },
+        {
+          "curve_id": "wildfire/electrical_cables_generic",
+          "subsystem": "ELECTRICAL",
+          "component": "CABLE_COLLECTION",
+          "specificity": "generic",
+          "L": 0.65, "k": 0.00080, "x0": 2500,
+          "confidence": "low",
+          "derivation": "engineering-standard"
+        },
+        {
+          "curve_id": "wildfire/civil_infra_generic",
+          "subsystem": "CIVIL_INFRA",
+          "component": "aggregate",
+          "specificity": "generic",
+          "L": 0.75, "k": 0.00090, "x0": 2100,
+          "confidence": "low",
+          "derivation": "proxy-adapted"
+        }
+      ]
+    },
+    {
+      "hazard_code": "HURRICANE",
+      "research_file": "HURRICANE_x_SOLAR.md",
+      "asset_type": "solar",
+      "priority_score": 4,
+      "intensity_variable": "wind_speed_mph",
+      "intensity_unit": "mph",
+      "intensity_measure": "3-second peak gust",
+      "curves": [
+        {
+          "curve_id": "hurricane/pv_array_tracker_stow",
+          "subsystem": "PV_ARRAY",
+          "component": "PV_MODULE",
+          "specificity": "specs",
+          "match_criteria": {"tracking_type": "single_axis"},
+          "description": "PV modules on tracker in hurricane stow mode",
+          "L": 0.85, "k": 0.055, "x0": 148,
+          "D10_mph": 105, "D50_mph": 148, "D90_mph": 191,
+          "confidence": "medium",
+          "derivation": "empirical (FPL Ian data) + proxy"
+        },
+        {
+          "curve_id": "hurricane/pv_array_tracker_midtilt",
+          "subsystem": "PV_ARRAY",
+          "component": "PV_MODULE",
+          "specificity": "specs",
+          "description": "PV modules on tracker with stow failure (worst case)",
+          "L": 0.95, "k": 0.065, "x0": 115,
+          "confidence": "medium-low",
+          "derivation": "empirical (n=2 case studies)"
+        },
+        {
+          "curve_id": "hurricane/pv_array_fixed_tilt",
+          "subsystem": "PV_ARRAY",
+          "component": "PV_MODULE",
+          "specificity": "specs",
+          "match_criteria": {"tracking_type": "fixed"},
+          "description": "PV modules on fixed 20-25° tilt mount",
+          "L": 0.90, "k": 0.048, "x0": 130,
+          "confidence": "medium",
+          "derivation": "empirical (Ceferino et al. 2023)"
+        },
+        {
+          "curve_id": "hurricane/pv_array_generic",
+          "subsystem": "PV_ARRAY",
+          "component": "PV_MODULE",
+          "specificity": "generic",
+          "description": "Fleet-average PV array hurricane fragility",
+          "L": 0.85, "k": 0.050, "x0": 135,
+          "confidence": "medium",
+          "derivation": "composite/proxy"
+        },
+        {
+          "curve_id": "hurricane/mounting_tracker_solar",
+          "subsystem": "MOUNTING",
+          "component": "TRACKER",
+          "specificity": "generic",
+          "L": 0.80, "k": 0.055, "x0": 120,
+          "confidence": "low-medium",
+          "derivation": "engineering-standard + proxy"
+        },
+        {
+          "curve_id": "hurricane/mounting_fixed_solar",
+          "subsystem": "MOUNTING",
+          "component": "FIXED_MOUNT",
+          "specificity": "generic",
+          "L": 0.70, "k": 0.045, "x0": 140,
+          "confidence": "low",
+          "derivation": "engineering-standard + proxy"
+        },
+        {
+          "curve_id": "hurricane/substation_solar",
+          "subsystem": "SUBSTATION",
+          "component": "TRANSFORMER_MAIN",
+          "specificity": "generic",
+          "description": "Substation compound wind + debris + rain damage",
+          "L": 0.80, "k": 0.040, "x0": 120,
+          "confidence": "low-medium",
+          "derivation": "HAZUS proxy + NERC post-event data"
+        }
+      ]
+    },
+    {
+      "hazard_code": "STRONG_WIND",
+      "research_file": "STRONG_WIND_x_WIND.md",
+      "asset_type": "wind",
+      "priority_score": 4,
+      "intensity_variable": "wind_speed_mph",
+      "intensity_unit": "mph",
+      "intensity_measure": "3-second peak gust",
+      "notes": "Covers derechos, downbursts, extratropical storms. Physical damage only — operational curtailment (cut-out at ~56 mph) is a separate revenue loss model.",
+      "curves": [
+        {
+          "curve_id": "strong_wind/rotor_assembly_generic",
+          "subsystem": "ROTOR_ASSEMBLY",
+          "component": "aggregate",
+          "specificity": "generic",
+          "L": 0.90, "k": 0.07, "x0": 125,
+          "confidence": "low-medium",
+          "derivation": "engineering-standard + limited event data"
+        },
+        {
+          "curve_id": "strong_wind/tower_generic",
+          "subsystem": "TOWER",
+          "component": "TOWER_SECTION",
+          "specificity": "generic",
+          "L": 0.75, "k": 0.065, "x0": 135,
+          "confidence": "low",
+          "derivation": "engineering-standard"
+        },
+        {
+          "curve_id": "strong_wind/nacelle_generic",
+          "subsystem": "NACELLE",
+          "component": "aggregate",
+          "specificity": "generic",
+          "L": 0.70, "k": 0.06, "x0": 135,
+          "confidence": "low",
+          "derivation": "proxy-adapted"
+        },
+        {
+          "curve_id": "strong_wind/foundation_generic",
+          "subsystem": "FOUNDATION",
+          "component": "FOUNDATION_BASE",
+          "specificity": "generic",
+          "L": 0.10, "k": 0.05, "x0": 160,
+          "confidence": "low",
+          "derivation": "expert-judgment"
+        }
+      ]
+    },
+    {
+      "hazard_code": "WILDFIRE",
+      "research_file": "WILDFIRE_x_WIND.md",
+      "asset_type": "wind",
+      "priority_score": 4,
+      "intensity_variable": "fireline_intensity_kWm",
+      "intensity_unit": "kW/m",
+      "notes": "Wind turbines are 10-50x less vulnerable to wildfire than solar due to elevation. No documented case of external wildfire damaging elevated turbine components.",
+      "curves": [
+        {
+          "curve_id": "wildfire/rotor_assembly_wind_generic",
+          "subsystem": "ROTOR_ASSEMBLY",
+          "component": "aggregate",
+          "specificity": "generic",
+          "L": 0.10, "k": 0.00008, "x0": 75000,
+          "confidence": "very-low",
+          "derivation": "expert-judgment (near-zero risk)"
+        },
+        {
+          "curve_id": "wildfire/nacelle_wind_generic",
+          "subsystem": "NACELLE",
+          "component": "aggregate",
+          "specificity": "generic",
+          "L": 0.15, "k": 0.00006, "x0": 80000,
+          "confidence": "very-low",
+          "derivation": "expert-judgment (near-zero risk)"
+        },
+        {
+          "curve_id": "wildfire/tower_wind_generic",
+          "subsystem": "TOWER",
+          "component": "TOWER_SECTION",
+          "specificity": "generic",
+          "description": "Tower base exposure to ground fire — only subsystem with meaningful wildfire vulnerability",
+          "L": 0.50, "k": 0.00045, "x0": 6000,
+          "confidence": "low",
+          "derivation": "engineering-standard (steel thermal limits)"
+        }
+      ]
+    },
+    {
+      "hazard_code": "RIVERINE_FLOOD",
+      "research_file": "FLOOD_x_SOLAR.md",
+      "asset_type": "solar",
+      "priority_score": 4,
+      "intensity_variable": "flood_depth_ft",
+      "intensity_unit": "ft",
+      "intensity_measure": "flood depth above ground level at asset centroid",
+      "notes": "Depth-above-ground; component elevation offsets are critical (panels at 2-8 ft, inverters at 0-3 ft, substation at grade). Duration is a known unmodeled factor in Gen-1.",
+      "curves": [
+        {
+          "curve_id": "flood/pv_array_fixed_tilt",
+          "subsystem": "PV_ARRAY",
+          "component": "PV_MODULE",
+          "specificity": "specs",
+          "match_criteria": {"tracking_type": "fixed"},
+          "description": "Fixed-tilt panels, leading edge at ~2 ft",
+          "L": 0.90, "k": 1.8, "x0": 2.0,
+          "confidence": "medium",
+          "derivation": "empirical (Thailand study) + HAZUS proxy"
+        },
+        {
+          "curve_id": "flood/pv_array_tracker_horizontal",
+          "subsystem": "PV_ARRAY",
+          "component": "PV_MODULE",
+          "specificity": "specs",
+          "match_criteria": {"tracking_type": "single_axis"},
+          "description": "SAT in horizontal stow, panels at ~2.5 ft",
+          "L": 0.90, "k": 1.8, "x0": 2.5,
+          "confidence": "medium",
+          "derivation": "empirical + engineering-standard"
+        },
+        {
+          "curve_id": "flood/pv_array_tracker_flood_stow",
+          "subsystem": "PV_ARRAY",
+          "component": "PV_MODULE",
+          "specificity": "specs",
+          "description": "SAT in flood stow (75-85° tilt), panels at ~7 ft",
+          "L": 0.90, "k": 1.8, "x0": 7.0,
+          "confidence": "low-medium",
+          "derivation": "engineering-standard + expert-judgment"
+        },
+        {
+          "curve_id": "flood/inverter_system_generic",
+          "subsystem": "INVERTER_SYSTEM",
+          "component": "INVERTER",
+          "specificity": "generic",
+          "description": "Pad-mounted inverter at ~0.75 ft elevation — near-binary failure",
+          "L": 0.95, "k": 3.5, "x0": 0.75,
+          "confidence": "medium",
+          "derivation": "engineering-standard (NEMA water damage) + HAZUS"
+        },
+        {
+          "curve_id": "flood/substation_generic",
+          "subsystem": "SUBSTATION",
+          "component": "TRANSFORMER_MAIN",
+          "specificity": "generic",
+          "description": "Transformer flooding — oil contamination at low depth",
+          "L": 0.95, "k": 2.5, "x0": 1.5,
+          "confidence": "medium",
+          "derivation": "IEEE C57 + NERC post-event + HAZUS"
+        },
+        {
+          "curve_id": "flood/electrical_cables_generic",
+          "subsystem": "ELECTRICAL",
+          "component": "CABLE_COLLECTION",
+          "specificity": "generic",
+          "description": "Underground cables resilient; junction boxes vulnerable",
+          "L": 0.55, "k": 1.0, "x0": 3.0,
+          "confidence": "low-medium",
+          "derivation": "engineering-standard"
+        },
+        {
+          "curve_id": "flood/civil_infra_generic",
+          "subsystem": "CIVIL_INFRA",
+          "component": "aggregate",
+          "specificity": "generic",
+          "description": "Roads, fencing, O&M buildings",
+          "L": 0.70, "k": 1.2, "x0": 2.0,
+          "confidence": "medium",
+          "derivation": "HAZUS commercial 1-story + JRC transport"
+        }
+      ]
+    },
+    {
+      "hazard_code": "WINTER_WEATHER",
+      "research_file": "WINTER_WEATHER_x_WIND.md",
+      "asset_type": "wind",
+      "priority_score": 4,
+      "intensity_variable": "ice_accretion_in",
+      "intensity_unit": "in",
+      "intensity_measure": "radial ice accretion on standard conductor",
+      "notes": "Two channels: physical structural damage (modeled) and operational icing curtailment (separate). Texas Feb 2021 was primarily Channel 2 with zero Channel 1 damage.",
+      "curves": [
+        {
+          "curve_id": "winter_weather/rotor_assembly_generic",
+          "subsystem": "ROTOR_ASSEMBLY",
+          "component": "aggregate",
+          "specificity": "generic",
+          "description": "Blade ice loading, mass imbalance, pitch bearing freeze",
+          "L": 0.60, "k": 3.5, "x0": 1.50,
+          "confidence": "low-medium",
+          "derivation": "engineering-standard (IEC 61400-1 Annex L, ISO 12494)"
+        },
+        {
+          "curve_id": "winter_weather/tower_generic",
+          "subsystem": "TOWER",
+          "component": "TOWER_SECTION",
+          "specificity": "generic",
+          "description": "Tower ice loading — combined with wind loading",
+          "L": 0.30, "k": 2.0, "x0": 2.50,
+          "confidence": "low",
+          "derivation": "engineering-standard (ASCE 7-22 + ISO 12494)"
+        },
+        {
+          "curve_id": "winter_weather/nacelle_generic",
+          "subsystem": "NACELLE",
+          "component": "aggregate",
+          "specificity": "generic",
+          "description": "Cold-start failures, lubricant viscosity issues",
+          "L": 0.35, "k": 3.0, "x0": 0.75,
+          "confidence": "low",
+          "derivation": "proxy-adapted + expert-judgment"
+        },
+        {
+          "curve_id": "winter_weather/electrical_generic",
+          "subsystem": "ELECTRICAL",
+          "component": "aggregate",
+          "specificity": "generic",
+          "description": "Transmission line icing, galloping, conductor clash",
+          "L": 0.70, "k": 4.0, "x0": 0.75,
+          "confidence": "medium",
+          "derivation": "engineering-standard (PNNL tower fragility)"
+        }
+      ]
+    }
+  ],
+
+  "summary_statistics": {
+    "total_curves": 42,
+    "total_research_files": 8,
+    "hazard_types_covered": ["HAIL", "HURRICANE", "WILDFIRE", "STRONG_WIND", "RIVERINE_FLOOD", "WINTER_WEATHER"],
+    "asset_types_covered": ["solar", "wind"],
+    "subsystems_covered": ["PV_ARRAY", "MOUNTING", "INVERTER_SYSTEM", "SUBSTATION", "ELECTRICAL", "CIVIL_INFRA", "ROTOR_ASSEMBLY", "TOWER", "NACELLE", "FOUNDATION"],
+    "confidence_distribution": {
+      "medium-high": 1,
+      "medium": 11,
+      "medium-low": 5,
+      "low-medium": 9,
+      "low": 11,
+      "very-low": 2
+    },
+    "derivation_methods": {
+      "empirical": 3,
+      "empirical + engineering-standard": 5,
+      "engineering-standard": 10,
+      "engineering-standard + expert-judgment": 6,
+      "proxy-adapted": 8,
+      "expert-judgment": 5,
+      "component-weighted aggregate": 2,
+      "composite/proxy": 3
+    },
+    "total_cited_sources_across_all_files": "~280+"
+  },
+
+  "hazard_types_not_yet_covered": [
+    {"code": "TORNADO", "priority_score": 3, "reason": "Idiosyncratic/localized; parameterized scenario model recommended"},
+    {"code": "HEAT_WAVE", "priority_score": 3, "reason": "Inverter de-rating only; simple temp exceedance model"},
+    {"code": "COLD_WAVE", "priority_score": 3, "reason": "Covered partially by WINTER_WEATHER; separate freeze model TBD"},
+    {"code": "ICE_STORM", "priority_score": 3, "reason": "Partially covered by WINTER_WEATHER; transmission line focus"},
+    {"code": "FREEZE", "priority_score": 3, "reason": "Thermal cycling stress model for solar; separate from ice loading"},
+    {"code": "FLASH_FLOOD", "priority_score": 3, "reason": "Similar to RIVERINE_FLOOD but with velocity component"},
+    {"code": "COASTAL_FLOOD", "priority_score": 2, "reason": "Storm surge; partially covered by HURRICANE compound hazard"},
+    {"code": "LIGHTNING", "priority_score": 3, "reason": "Attritional; frequency × severity model"},
+    {"code": "DUST_STORM", "priority_score": 2, "reason": "Soiling only; qualitative"},
+    {"code": "FOG", "priority_score": 1, "reason": "Negligible; qualitative flag only"}
+  ]
+}
