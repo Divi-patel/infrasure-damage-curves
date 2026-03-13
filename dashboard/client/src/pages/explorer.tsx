@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   hazardGroups,
   logistic,
@@ -23,6 +24,21 @@ const CURVE_LINE_COLORS = [
   "#3b82f6", "#ef4444", "#22c55e", "#f59e0b", "#8b5cf6", "#06b6d4", "#ec4899",
 ];
 
+const REF_TYPE_COLORS: Record<string, string> = {
+  empirical: "#22c55e",
+  standard: "#3b82f6",
+  proxy: "#f59e0b",
+  expert: "#8b5cf6",
+  model: "#06b6d4",
+};
+
+const PARAM_LABELS: Record<string, string> = {
+  L: "L (max DR)",
+  k: "k (steepness)",
+  x0: "x₀ (midpoint)",
+  general: "General",
+};
+
 export default function Explorer() {
   const [selectedGroupIdx, setSelectedGroupIdx] = useState(0);
   const [selectedCurveIdx, setSelectedCurveIdx] = useState<number | null>(null);
@@ -31,6 +47,7 @@ export default function Explorer() {
   const [customK, setCustomK] = useState<number | null>(null);
   const [customX0, setCustomX0] = useState<number | null>(null);
   const [showParameterTuning, setShowParameterTuning] = useState(false);
+  const [probeIntensity, setProbeIntensity] = useState<number | null>(null);
 
   const group = hazardGroups[selectedGroupIdx];
   const activeCurve = selectedCurveIdx !== null ? group.curves[selectedCurveIdx] : group.curves[0];
@@ -81,6 +98,7 @@ export default function Explorer() {
     setCustomL(null);
     setCustomK(null);
     setCustomX0(null);
+    setProbeIntensity(null);
   };
 
   const handleCurveChange = (val: string) => {
@@ -95,11 +113,16 @@ export default function Explorer() {
   const effK = customK ?? activeCurve.k;
   const effX0 = customX0 ?? activeCurve.x0;
 
+  // Live calculation at probe intensity
+  const probeX = probeIntensity ?? effX0;
+  const probeDR = logistic(probeX, effL, effK, effX0);
+  const probeExpTerm = Math.exp(-effK * (probeX - effX0));
+
   return (
     <div className="p-6 space-y-4 overflow-y-auto h-full">
       <div>
         <h1 className="text-xl font-semibold tracking-tight" data-testid="text-page-title">Curve Explorer</h1>
-        <p className="text-sm text-muted-foreground mt-1">Interactive logistic fragility curves with parameter tuning</p>
+        <p className="text-sm text-muted-foreground mt-1">Interactive logistic fragility curves with derivation math, references, and parameter tuning</p>
       </div>
 
       {/* Controls */}
@@ -222,6 +245,9 @@ export default function Explorer() {
                   <>
                     <ReferenceLine x={effX0} stroke="hsl(var(--muted-foreground))" strokeDasharray="5 5" label={{ value: `x₀=${effX0}`, position: "top", fontSize: 10 }} />
                     <ReferenceLine y={effL / 2} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" opacity={0.4} />
+                    {probeIntensity !== null && (
+                      <ReferenceLine x={probeIntensity} stroke="#f59e0b" strokeDasharray="3 3" strokeWidth={1.5} />
+                    )}
                   </>
                 )}
               </AreaChart>
@@ -258,7 +284,15 @@ export default function Explorer() {
                 </div>
                 <div className="p-2 rounded bg-muted/50">
                   <div className="text-lg font-bold">{effX0}</div>
-                  <div className="text-[10px] text-muted-foreground">x₀ (midpoint)</div>
+                  <div className="text-[10px] text-muted-foreground">x₀ ({group.intensity_unit})</div>
+                </div>
+              </div>
+
+              {/* Functional form display */}
+              <div className="p-2.5 rounded bg-muted/30 border border-border/50">
+                <div className="text-[10px] text-muted-foreground mb-1 font-medium">Functional Form</div>
+                <div className="font-mono text-xs leading-relaxed">
+                  DR(x) = {effL} / (1 + e<sup>-{effK}×(x - {effX0})</sup>)
                 </div>
               </div>
 
@@ -321,7 +355,7 @@ export default function Explorer() {
           {/* Curve Details */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Curve Details</CardTitle>
+              <CardTitle className="text-sm font-medium">Curve Identity</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-xs">
               <div>
@@ -368,13 +402,188 @@ export default function Explorer() {
                   </code>
                 </div>
               )}
-              <div className="pt-2 border-t mt-2">
-                <span className="text-muted-foreground">Research File: </span>
-                <span className="font-mono text-primary">{group.research_file}</span>
-              </div>
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      {/* Bottom Section: Derivation, Math, References */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Live Calculation */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              Live Calculation
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div>
+              <div className="flex justify-between text-xs mb-1">
+                <span>Intensity (x)</span>
+                <span className="font-mono font-medium">{probeX.toFixed(1)} {group.intensity_unit}</span>
+              </div>
+              <Slider
+                value={[probeX]}
+                onValueChange={([v]) => setProbeIntensity(Math.round(v * 10) / 10)}
+                min={intensityRange.start}
+                max={intensityRange.end}
+                step={(intensityRange.end - intensityRange.start) / 200}
+                data-testid="slider-probe"
+              />
+            </div>
+
+            <div className="p-3 rounded bg-muted/30 border border-border/50 space-y-2">
+              <div className="text-[10px] text-muted-foreground font-medium">Step-by-step</div>
+              <div className="font-mono text-[11px] leading-relaxed space-y-1.5">
+                <div className="text-muted-foreground">
+                  DR(x) = L / (1 + e<sup>-k(x - x₀)</sup>)
+                </div>
+                <div className="border-t border-border/30 pt-1.5">
+                  <span className="text-muted-foreground">exponent = </span>
+                  -{effK} × ({probeX.toFixed(1)} - {effX0})
+                </div>
+                <div>
+                  <span className="text-muted-foreground">= </span>
+                  {(-effK * (probeX - effX0)).toFixed(4)}
+                </div>
+                <div className="border-t border-border/30 pt-1.5">
+                  <span className="text-muted-foreground">e<sup>exponent</sup> = </span>
+                  {probeExpTerm.toFixed(4)}
+                </div>
+                <div className="border-t border-border/30 pt-1.5">
+                  <span className="text-muted-foreground">DR = </span>
+                  {effL} / (1 + {probeExpTerm.toFixed(4)})
+                </div>
+                <div>
+                  <span className="text-muted-foreground">= </span>
+                  {effL} / {(1 + probeExpTerm).toFixed(4)}
+                </div>
+              </div>
+              <div className="pt-2 border-t border-border/50 flex items-center justify-between">
+                <span className="text-xs font-medium">Damage Ratio</span>
+                <span className="text-lg font-bold font-mono" style={{ color: probeDR > 0.5 ? "#ef4444" : probeDR > 0.2 ? "#f59e0b" : "#22c55e" }}>
+                  {(probeDR * 100).toFixed(1)}%
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Derivation Notes + Physics */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+              Derivation Details
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-xs">
+            {/* Physics summary */}
+            {activeCurve.physics_summary && (
+              <div className="p-2.5 rounded bg-muted/30 border border-border/50">
+                <div className="text-[10px] text-muted-foreground font-medium mb-1">Physics of Damage</div>
+                <div className="leading-relaxed">{activeCurve.physics_summary}</div>
+              </div>
+            )}
+
+            {/* Derivation notes per parameter */}
+            {activeCurve.derivation_notes && activeCurve.derivation_notes.length > 0 && (
+              <div className="space-y-2">
+                <div className="text-[10px] text-muted-foreground font-medium">Parameter Justification</div>
+                {activeCurve.derivation_notes.map((note, i) => (
+                  <div key={i} className="p-2 rounded bg-muted/20 border-l-2" style={{ borderLeftColor: note.parameter === "L" ? "#3b82f6" : note.parameter === "k" ? "#22c55e" : note.parameter === "x0" ? "#f59e0b" : "#8b5cf6" }}>
+                    <div className="text-[10px] font-medium mb-0.5" style={{ color: note.parameter === "L" ? "#3b82f6" : note.parameter === "k" ? "#22c55e" : note.parameter === "x0" ? "#f59e0b" : "#8b5cf6" }}>
+                      {PARAM_LABELS[note.parameter] || note.parameter}
+                    </div>
+                    <div className="leading-relaxed text-muted-foreground">{note.text}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Engineering thresholds */}
+            {activeCurve.engineering_thresholds && activeCurve.engineering_thresholds.length > 0 && (
+              <div className="space-y-1.5">
+                <div className="text-[10px] text-muted-foreground font-medium">Engineering Thresholds</div>
+                {activeCurve.engineering_thresholds.map((t, i) => (
+                  <div key={i} className="flex items-start gap-1.5">
+                    <span className="text-muted-foreground mt-0.5 shrink-0">▸</span>
+                    <span className="text-muted-foreground leading-relaxed">{t}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {!activeCurve.physics_summary && !activeCurve.derivation_notes?.length && (
+              <div className="text-muted-foreground italic">No detailed derivation notes available for this curve.</div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* References */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              Curve References
+              {activeCurve.references && (
+                <Badge variant="outline" className="text-[10px] ml-auto">{activeCurve.references.length} sources</Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-xs">
+            {activeCurve.references && activeCurve.references.length > 0 ? (
+              <>
+                {activeCurve.references.map((ref, i) => (
+                  <div key={i} className="p-2.5 rounded bg-muted/20 border border-border/40 space-y-1">
+                    <div className="flex items-start gap-2">
+                      <Badge
+                        variant="outline"
+                        className="text-[9px] px-1.5 shrink-0 mt-0.5"
+                        style={{ borderColor: REF_TYPE_COLORS[ref.type] + "60", color: REF_TYPE_COLORS[ref.type] }}
+                      >
+                        {ref.type}
+                      </Badge>
+                      <span className="leading-relaxed">{ref.label}</span>
+                    </div>
+                    {ref.url && (
+                      <a
+                        href={ref.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] text-primary hover:underline block truncate pl-[52px]"
+                      >
+                        {ref.url}
+                      </a>
+                    )}
+                  </div>
+                ))}
+
+                {/* Source type legend */}
+                <div className="pt-2 border-t border-border/30">
+                  <div className="text-[10px] text-muted-foreground mb-1.5">Source Type Legend</div>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(REF_TYPE_COLORS).map(([type, color]) => (
+                      <div key={type} className="flex items-center gap-1">
+                        <span className="inline-block w-2 h-2 rounded-full" style={{ background: color }} />
+                        <span className="text-[10px] text-muted-foreground capitalize">{type}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="text-muted-foreground italic">No specific references linked to this curve.</div>
+            )}
+
+            {/* Research file link */}
+            <div className="pt-2 border-t border-border/30">
+              <span className="text-[10px] text-muted-foreground">Full research: </span>
+              <span className="font-mono text-[10px] text-primary">{group.research_file}</span>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
