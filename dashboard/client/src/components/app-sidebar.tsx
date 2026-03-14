@@ -15,8 +15,8 @@ import {
 import { PerplexityAttribution } from "@/components/PerplexityAttribution";
 
 const navItems = [
-  { title: "Overview", url: "/", icon: LayoutDashboard },
-  { title: "Curve Explorer", url: "/explorer", icon: Activity },
+  { title: "Curve Explorer", url: "/", icon: Activity },
+  { title: "Overview", url: "/overview", icon: LayoutDashboard },
   { title: "Compare Curves", url: "/compare", icon: GitCompare },
   { title: "Backend View", url: "/backend", icon: Server },
   { title: "Sources", url: "/sources", icon: BookOpen },
@@ -49,7 +49,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => {
-                const isActive = location === item.url || (item.url !== "/" && location.startsWith(item.url));
+                const isActive = location === item.url || (item.url !== "/" && item.url !== "/overview" && location.startsWith(item.url)) || (item.url === "/" && location === "/explorer");
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild isActive={isActive} data-testid={`nav-${item.title.toLowerCase().replace(/\s+/g, "-")}`}>

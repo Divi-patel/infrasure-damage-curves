@@ -17,7 +17,8 @@ import Sources from "@/pages/sources";
 function AppRouter() {
   return (
     <Switch>
-      <Route path="/" component={Overview} />
+      <Route path="/" component={Explorer} />
+      <Route path="/overview" component={Overview} />
       <Route path="/explorer" component={Explorer} />
       <Route path="/compare" component={Compare} />
       <Route path="/backend" component={Backend} />
